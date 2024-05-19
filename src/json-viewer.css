@@ -1,0 +1,139 @@
+:host {
+  --expand-bullet-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"><path d="M10.5 6.65 4.9 2.8v7.7" fill="black"/></svg>');
+  --expand-bullet-width: 14px;
+  --expand-bullet-height: 14px;
+
+  /* font props */
+  --font-size: 11px;
+  --font-family: monospace;
+  --font-weight: 400;
+
+  /* colour-theme props */
+  --background-color: #fff;
+  --color: rgb(31, 31, 31);
+  --expand-bullet-color: black;
+  --expand-bullet-width: 14px;
+  --expand-bullet-height: 14px;
+  --key-color: rgb(142, 0, 75);
+  --number-value-color: rgb(8, 66, 160);
+  --bool-value-color: rgb(8, 66, 160);
+  --null-value-color: rgba(31, 31, 31, 0.38);
+  --string-value-color: rgb(220, 54, 46);
+  --focused-node-background: #eee;
+  --hovered-node-background: #eee;
+}
+
+@media (prefers-color-scheme: dark) {
+    :host {
+      --background-color: #242424;
+      --color: rgba(255, 255, 255, 0.87);
+      --expand-bullet-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"><path d="M10.5 6.65 4.9 2.8v7.7" fill="black"/></svg>');
+      --expand-bullet-color: white;
+      --key-color: #7cacf8ff;
+      --number-value-color: #9980ff;
+      --bool-value-color: #9980ff;
+      --null-value-color: #e3e3e361;
+      --string-value-color: #5cd5fb;
+      --focused-node-background: #3d3d3d;
+      --hovered-node-background: #3d3d3d;
+    }
+
+}
+
+.json-tree {
+    font-family: var(--jv-font-family, var(--font-family));
+    font-size: var(--jv-font-size, var(--font-size));
+    font-weight: var(--jv-font-weight, var(--font-weight));
+    line-height: 1.5;
+    background-color: var(--jv-background-color, var(--background-color));
+    color: var(--jv-color, var(--color));
+    overflow: auto;
+    color-scheme: light dark;
+}
+
+.json-tree ol {
+    list-style-type: none;
+    padding-left: 12px;
+    display: none;
+}
+
+.json-tree li:not(.parent)::before {
+    background-color: transparent;
+}
+
+.json-tree li::before {
+    content: '\A0\A0';
+    mask-image: var(--jv-expand-bullet-mask-image, var(--expand-bullet-mask-image));
+    background-color: var(--jv-expand-bullet-color, var(--expand-bullet-color));
+    width: var(--jv-expand-bullet-width, var(--expand-bullet-width));
+    height: var(--jv-expand-bullet-height, var(--expand-bullet-height));
+    transition: transform 200ms;
+    margin-right: 2px;
+}
+
+.json-tree ol.expanded {
+    display: block;
+}
+
+.json-tree li.expanded::before {
+    transform: rotate(90deg);
+}
+
+.json-tree li {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 16px;
+    cursor: default;
+}
+
+.json-tree :focus {
+    outline: none;
+}
+
+.key-name {
+    color: var(--jv-key-color, var(--key-color));
+}
+
+.delim {
+    white-space: pre;
+    flex-shrink: 0;
+}
+
+.string-value {
+    color: var(--jv-string-value-color, var(--string-value-color));
+}
+
+.num-value {
+    color: var(--jv-number-value-color, var(--number-value-color));
+}
+
+.bool-value {
+    color: var(--jv-bool-value-color, var(--bool-value-color));
+}
+
+.null-value {
+    color: var(--jv-null-value-color, var(--null-value-color));
+}
+
+.selected:focus .key-value-pair {
+    background: var(--jv-focused-node-background, var(--focused-node-background));
+}
+
+.json-tree li .fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--jv-hovered-node-background, var(--hovered-node-background));
+    display: none;
+    margin-left: -9000px;
+    z-index: -1;
+}
+
+.json-tree li:hover .fill {
+    display: block;
+}

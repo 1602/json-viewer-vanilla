@@ -1,0 +1,55 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  --jv-font-size: 11px;
+  --jv-font-family: monospace;
+  --jv-font-weight: 400;
+  --jv-background-color: #242424;
+  --jv-color: rgba(255, 255, 255, 0.87);
+  --jv-expand-bullet-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"><path d="M10.5 6.65 4.9 2.8v7.7" fill="black"/></svg>');
+  --jv-expand-bullet-color: white;
+  --jv-expand-bullet-width: 14px;
+  --jv-expand-bullet-height: 14px;
+  --jv-key-color: #7cacf8ff;
+  --jv-number-value-color: #9980ff;
+  --jv-bool-value-color: #9980ff;
+  --jv-null-value-color: #e3e3e361;
+  --jv-string-value-color: #5cd5fb;
+  --jv-focused-node-background: #3d3d3d;
+  --jv-hovered-node-background: #3d3d3d;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #242424;
+}
+
+#app {
+  margin: 10px;
+}
+
+pre {
+    font-size: 11px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
