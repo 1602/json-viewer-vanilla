@@ -1,15 +1,19 @@
-import { jsonViewer } from './json-viewer.js';
+import { jsonViewer, ExternalState } from './json-viewer.js';
 
 export class JsonViewerWebComponent extends HTMLElement {
     private valueProp: string;
+    private jsonViewerState: ExternalState;
     private appRoot: HTMLDivElement;
-    private expandedNodesProp: {[key: string]: boolean};
 
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
         this.valueProp = '';
-        this.expandedNodesProp = {};
+        this.jsonViewerState = {
+            expandedNodes: {},
+            focusedNode: null,
+            value: null
+        };
         this.appRoot = document.createElement('div');
         this.shadowRoot!.appendChild(this.appRoot);
     }
@@ -22,16 +26,30 @@ export class JsonViewerWebComponent extends HTMLElement {
         const expandedNodesProp = this.getAttribute('expanded');
         if (typeof expandedNodesProp === 'string') {
             try {
-                this.expandedNodesProp = JSON.parse(expandedNodesProp);
+                this.jsonViewerState.expandedNodes = JSON.parse(expandedNodesProp);
             } catch(e) { }
         }
         this.render();
     }
 
     render() {
-        this.shadowRoot!.replaceChild(jsonViewer(this.valueProp, this.expandedNodesProp, () => {
-            this.emit('expandedChange', { expanded: this.expandedNodesProp });
-        }), this.shadowRoot!.firstElementChild!);
+        const { focusedNode } = this.jsonViewerState;
+        try {
+            this.jsonViewerState.value = JSON.parse(this.valueProp);
+        } catch (e: any) {
+            return this.appRoot.innerText = e.messsage;
+        }
+        const [jv, select] = jsonViewer(this.jsonViewerState, () => {
+            this.emit('expandedChange', { expanded: this.jsonViewerState.expandedNodes });
+        })
+        this.shadowRoot!.replaceChild(jv, this.shadowRoot!.firstElementChild!);
+        if (focusedNode) {
+            const li = jv.querySelector(`:scope li[json-path="${focusedNode}"]`);
+            if (li) {
+                select(li as HTMLLIElement);
+            }
+        }
+
     }
 
     get value() {
@@ -54,14 +72,14 @@ export class JsonViewerWebComponent extends HTMLElement {
     }
 
     get expanded() {
-        return this.expandedNodesProp;
+        return this.jsonViewerState.expandedNodes;
     }
 
     set expanded(val) {
-        if (this.expandedNodesProp === val) {
+        if (this.jsonViewerState.expandedNodes === val) {
             return;
         }
-        this.expandedNodesProp = val;
+        this.jsonViewerState.expandedNodes = val;
         this.render();
     }
 

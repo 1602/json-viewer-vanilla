@@ -3,13 +3,13 @@ export function ce(tagName: string, attributes?: {[key: string]: string}, childr
     const el = document.createElement(tagName);
     if (attributes) {
         Object.entries(attributes).forEach(([key, value]) => {
-            el.setAttribute(key, value);
+            setAttr(el, key, value);
         });
     }
     if (children) {
         children.forEach(c => {
             if (c) {
-                el.appendChild(c)
+                el.appendChild(c);
             }
         });
     }
@@ -31,21 +31,23 @@ export function findNextVisibleListItem(el: Element|null): HTMLLIElement|null {
         return null;
     }
 
-    if (!el.nextElementSibling) {
+    const nes = el.nextElementSibling;
+
+    if (!nes) {
         return findNextVisibleListItem(el.parentElement!);
     }
 
-    if (el.nextElementSibling.tagName === 'LI') {
+    if (nes.tagName === 'LI') {
         return el.nextElementSibling as HTMLLIElement;
     }
 
-    if (el.nextElementSibling.tagName === 'OL') {
-        const nes = el.nextElementSibling.firstElementChild;;
-        if (nes && nes.checkVisibility() && nes.tagName === 'LI') {
-            return el.nextElementSibling.firstElementChild as HTMLLIElement;
+    if (nes.tagName === 'OL') {
+        const fec = nes.firstElementChild;;
+        if (fec?.tagName === 'LI' && fec.checkVisibility()) {
+            return fec as HTMLLIElement;
         }
 
-        return findNextVisibleListItem(el.nextElementSibling);
+        return findNextVisibleListItem(nes);
     }
 
     return null;
@@ -56,33 +58,35 @@ export function findPrevVisibleListItem(el: Element|null): HTMLLIElement|null {
         return null;
     }
 
-    if (!el.previousElementSibling) {
+    const pes = el.previousElementSibling;
+
+    if (!pes) {
         return findPrevVisibleListItem(el.parentElement!);
     }
 
-    if (el.previousElementSibling.tagName === 'LI') {
-        return el.previousElementSibling as HTMLLIElement;
+    if (pes.tagName === 'LI') {
+        return pes as HTMLLIElement;
     }
 
-    if (el.previousElementSibling.tagName === 'OL') {
-        if (el.previousElementSibling.checkVisibility()) {
-            let { lastElementChild } = el.previousElementSibling;
-            while (lastElementChild && lastElementChild.tagName === 'OL' && lastElementChild.checkVisibility()) {
-                lastElementChild = lastElementChild.lastElementChild;
+    if (pes.tagName === 'OL') {
+        if (pes.checkVisibility()) {
+            let { lastElementChild: lec } = pes;
+            while (lec?.tagName === 'OL' && lec.checkVisibility()) {
+                lec = lec.lastElementChild;
             }
 
-            if (lastElementChild && lastElementChild.tagName === 'OL') {
-                if (lastElementChild.previousElementSibling && lastElementChild.previousElementSibling.tagName === 'LI') {
-                    return lastElementChild.previousElementSibling as HTMLLIElement;
+            if (lec && lec.tagName === 'OL') {
+                if (lec.previousElementSibling?.tagName === 'LI') {
+                    return lec.previousElementSibling as HTMLLIElement;
                 }
             }
 
-            if (lastElementChild && lastElementChild.tagName === 'LI') {
-                return lastElementChild as HTMLLIElement;
+            if (lec && lec.tagName === 'LI') {
+                return lec as HTMLLIElement;
             }
         }
 
-        return findPrevVisibleListItem(el.previousElementSibling);
+        return findPrevVisibleListItem(pes);
     }
 
     return null;
@@ -124,4 +128,12 @@ function getScrollParent(node: Element): Element {
         currentParent = currentParent.parentElement
     }
     return document.scrollingElement || document.documentElement
+}
+
+export function remAttr(el: HTMLElement, attr: string) {
+    el.removeAttribute(attr);
+}
+
+export function setAttr(el: HTMLElement, attr: string, val: string) {
+    el.setAttribute(attr, val);
 }

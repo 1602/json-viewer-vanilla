@@ -36,11 +36,9 @@ const json = `
 `;
 
 if (app) {
-  // app.appendChild(jsonViewer(json));
-  const jv = ce('json-viewer', { value: json, expanded: '{"": true}' }) as JsonViewerWebComponent;
+  const jv = ce('json-viewer', { value: json, expanded: '{"": true, "/demo": true}' }) as JsonViewerWebComponent;
   const expandedNodes = ce('pre');
   jv.addEventListener('json-viewer:expandedChange', ({ detail }: any) => {
-      console.log(123, detail)
       expandedNodes.textContent = JSON.stringify(detail.expanded, null, '  ');
   });
   app.appendChild(jv);
@@ -70,7 +68,7 @@ if (app) {
   // const data = JSON.parse(json);
   // setInterval(() => {
   //     data.demo.longArray[0] = Math.floor(Math.random() * 10);
-  //     data.demo.longArray.push(Math.floor(Math.random() * 10));
+  //     // data.demo.longArray.push(Math.floor(Math.random() * 10));
   //     jv.value = JSON.stringify(data);
   // }, 5000);
 }

@@ -7,21 +7,41 @@ import {
     findPrevVisibleListItem,
     clickOn,
     isInViewport,
+    remAttr,
+    setAttr,
 } from './dom.js';
 
-export function jsonViewer(json: string, expandedNodes: {[key: string]: boolean}, onExpandedChange: () => void): HTMLElement {
+export type ExternalState = {
+    expandedNodes: {[key: string]: boolean}
+    focusedNode: string|null
+    value: JsonValue
+}
+
+export type JsonValue = object|Array<JsonValue>|string|number|null;
+
+type TreeNodeParams = {
+    value: JsonValue,
+    path: string,
+    k?: string,
+    skipPreview?: boolean,
+    displayIndexOffset?: number,
+}
+
+const ariaSelected = 'aria-selected';
+const ariaExpanded = 'aria-expanded';
+
+export function jsonViewer(state: ExternalState, onExpandedChange: () => void): [HTMLElement, (el: HTMLLIElement|null) => void] {
     let selectedNode: HTMLLIElement|null = null;
-    const value = JSON.parse(json);
     const jv = ce('div', { class: 'json-tree' }, [
         ce('style', {}, [ctn(styles)]),
         ce('ol', {
            class: 'expanded',
            role: 'tree',
            tabIndex: '0'
-       }, treeNode({ value, path: '', expandedNodes, onSelectedNode, onExpandedChange }))
+       }, treeNode({ value: state.value, path: '' }))
     ]);
 
-    jv.addEventListener('keydown', onKeyDownHandler)
+    jv.addEventListener('keydown', onKeyDownHandler);
 
     function onKeyDownHandler(e: KeyboardEvent) {
         if (e.altKey || e.metaKey || e.ctrlKey) {
@@ -34,40 +54,38 @@ export function jsonViewer(json: string, expandedNodes: {[key: string]: boolean}
             return;
         }
 
+        const isExpanded = selectedElement.ariaExpanded;
+
         switch (e.code) {
-            case 'ArrowLeft': {
+            case 'ArrowLeft':
                 e.preventDefault();
-                if (selectedElement.getAttribute('aria-expanded')) {
-                    clickOn(selectedElement);
-                } else {
-                    select(selectedElement.parentElement?.previousElementSibling as HTMLLIElement);
+                if (isExpanded) {
+                    return clickOn(selectedElement);
                 }
-            }
+                select(selectedElement.parentElement?.previousElementSibling as HTMLLIElement);
             break;
-            case 'ArrowRight': {
+            case 'ArrowRight':
                 e.preventDefault();
-                if (selectedElement.getAttribute('aria-expanded')) {
-                    select(findNextVisibleListItem(selectedElement) as HTMLLIElement);
-                } else {
-                    clickOn(selectedElement);
+                if (isExpanded) {
+                    return select(findNextVisibleListItem(selectedElement));
                 }
-            }
+                clickOn(selectedElement);
             break;
             case 'ArrowDown':
             case 'KeyJ':
                 e.preventDefault();
-                select(findNextVisibleListItem(selectedElement) as HTMLLIElement);
+                select(findNextVisibleListItem(selectedElement));
             break;
             case 'ArrowUp':
             case 'KeyK': {
                 e.preventDefault();
-                select(findPrevVisibleListItem(selectedElement) as HTMLLIElement);
+                select(findPrevVisibleListItem(selectedElement));
             }
             break;
         }
     }
 
-    function select(el?: HTMLLIElement) {
+    function select(el: HTMLLIElement|null) {
         if (el) {
             const path = el.getAttribute('json-path');
             if (path !== null) {
@@ -82,144 +100,132 @@ export function jsonViewer(json: string, expandedNodes: {[key: string]: boolean}
         }
     }
 
-    return jv;
+    return [jv, select];
 
     function onSelectedNode(li: HTMLLIElement) {
         if (selectedNode) {
             selectedNode.classList.remove('selected');
-            selectedNode.removeAttribute('aria-selected');
-            selectedNode.removeAttribute('tabindex');
+            remAttr(selectedNode, ariaSelected);
+            remAttr(selectedNode, 'tabindex');
         }
         selectedNode = li;
         selectedNode.classList.add('selected');
-        selectedNode.setAttribute('tabindex', '1');
-        selectedNode.setAttribute('aria-selected', 'true');
+        setAttr(selectedNode, 'tabindex', '1');
+        setAttr(selectedNode, ariaSelected, 'true');
+        state.focusedNode = li.getAttribute('json-path');
     }
-}
 
-export type JsonValue = object|Array<JsonValue>|string|number|null;
+    function treeNode({
+        value,
+        path,
+        k,
+        skipPreview,
+        displayIndexOffset = 0,
+    }: TreeNodeParams): HTMLElement[] {
+        const isParent = typeof value === 'object' && value !== null && Object.keys(value).length > 0;
+        let isExpanded = Boolean(state.expandedNodes[path]);
+        let isRendered = isExpanded;
 
-type TreeNodeParams = {
-    value: JsonValue,
-    path: string,
-    k?: string,
-    skipPreview?: boolean,
-    displayIndexOffset?: number,
-    expandedNodes: {[key: string]: boolean },
-    onSelectedNode: (li: HTMLLIElement) => void,
-    onExpandedChange: () => void,
-}
+        const li = ce('li', {
+            role: 'treeitem',
+            'json-path': path,
+            class: calcLIClassName(),
+            'aria-expanded': isParent && isExpanded ? 'true' : '',
+        }, [
+            ce('span', { class: 'key-value-pair' }, skipPreview && k ? [ctn(k)] : keyValuePair(value, k)),
+            ce('div', { class: 'fill' }),
+        ]) as HTMLLIElement;
 
-function treeNode({
-    value,
-    path,
-    k,
-    skipPreview,
-    displayIndexOffset = 0,
-    expandedNodes,
-    onSelectedNode,
-    onExpandedChange,
-}: TreeNodeParams): HTMLElement[] {
-    const isParent = typeof value === 'object' && value !== null && Object.keys(value).length > 0;
-    let isExpanded = Boolean(expandedNodes[path]);
-    let isRendered = isExpanded;
+        li.addEventListener('blur', () => {
+            if (state.focusedNode === path) {
+                state.focusedNode = null;
+            }
+        });
 
-    const li = ce('li', {
-        role: 'treeitem',
-        'json-path': path,
-        class: calcLIClassName(),
-        'aria-expanded': isParent && isExpanded ? 'true' : '',
-    }, [
-        ce('span', { class: 'key-value-pair' }, skipPreview && k ? [ctn(k)] : keyValuePair(value, k)),
-        ce('div', { class: 'fill' }),
-    ]) as HTMLLIElement;
-
-    function renderChildren() {
-        let children: HTMLElement[] = [];
-        // TODO render children lazily (only when expanded)
-        if (isParent) {
-            const ARRAY_CHUNK_LIMIT = 5;
-            if (Array.isArray(value) && value.length > ARRAY_CHUNK_LIMIT) {
-                const a = [];
-                for (let i = 0; i < value.length; i += ARRAY_CHUNK_LIMIT) {
-                    const arrayChunkLabel = `[${i} … ${Math.min(value.length - 1, i + ARRAY_CHUNK_LIMIT - 1)}]`;
-                    a.push(treeNode({
-                        k: arrayChunkLabel,
-                        displayIndexOffset: i,
-                        skipPreview: true,
-                        value: value.slice(i, i + ARRAY_CHUNK_LIMIT),
-                        path: path + '/' + i,
-                        expandedNodes,
-                        onSelectedNode,
-                        onExpandedChange,
-                    }));
-                }
-                children = a.flat();
-            } else {
-                children = Object.entries(value).map(([k, v]) => {
-                    if (Array.isArray(value)) {
-                        k = (parseInt(k, 10) + displayIndexOffset).toString();
+        function renderChildren() {
+            let children: HTMLElement[] = [];
+            if (isParent) {
+                const ARRAY_CHUNK_LIMIT = 5;
+                if (Array.isArray(value) && value.length > ARRAY_CHUNK_LIMIT) {
+                    const a = [];
+                    for (let i = 0; i < value.length; i += ARRAY_CHUNK_LIMIT) {
+                        const arrayChunkLabel = `[${i} … ${Math.min(value.length - 1, i + ARRAY_CHUNK_LIMIT - 1)}]`;
+                        a.push(treeNode({
+                            k: arrayChunkLabel,
+                            displayIndexOffset: i,
+                            skipPreview: true,
+                            value: value.slice(i, i + ARRAY_CHUNK_LIMIT),
+                            path: path + '/' + i,
+                        }));
                     }
-                    return treeNode({
-                        k,
-                        value: v,
-                        path: path + '/' + k,
-                        expandedNodes,
-                        onSelectedNode,
-                        onExpandedChange,
-                    });
-                }).flat();
+                    children = a.flat();
+                } else {
+                    children = Object.entries(value).map(([k, v]) => {
+                        if (Array.isArray(value)) {
+                            k = (parseInt(k, 10) + displayIndexOffset).toString();
+                        }
+                        return treeNode({
+                            k,
+                            value: v,
+                            path: path + '/' + k,
+                        });
+                    }).flat();
+                }
             }
+            return children.length ? ce('ol', { role: 'group', class: calcOLClassName() }, children) : null;
         }
-        return children.length ? ce('ol', { role: 'group', class: calcOLClassName() }, children) : null;
-    }
 
-    let ol: HTMLElement|null = null;
-    if (isParent && isExpanded && isRendered) {
-        ol = renderChildren();
-    }
-
-    li.addEventListener('click', () => {
-        isExpanded = !isExpanded;
-        expandedNodes[path] = isExpanded;
-        onExpandedChange();
-        if (isParent && isExpanded && !isRendered) {
+        let ol: HTMLElement|null = null;
+        if (isParent && isExpanded && isRendered) {
             ol = renderChildren();
-            li.parentNode!.insertBefore(ol as HTMLElement, li.nextElementSibling);
-            isRendered = true;
         }
-        if (ol) {
-            ol.className = calcOLClassName();
-        }
-        li.className = calcLIClassName();
-        onSelectedNode(li);
-        (li as HTMLElement).tabIndex = 1;
-        (li as HTMLElement).focus();
-        if (isParent) {
-            if (isExpanded) {
-                li.setAttribute('aria-expanded', 'true');
-            } else {
-                li.removeAttribute('aria-expanded');
+
+        li.addEventListener('click', () => {
+            isExpanded = !isExpanded;
+            state.expandedNodes[path] = isExpanded;
+            onExpandedChange();
+            if (isParent && isExpanded && !isRendered) {
+                ol = renderChildren();
+                li.parentNode!.insertBefore(ol as HTMLElement, li.nextElementSibling);
+                isRendered = true;
             }
-        }
-    });
+            if (ol) {
+                ol.className = calcOLClassName();
+            }
+            li.className = calcLIClassName();
+            onSelectedNode(li);
+            (li as HTMLElement).tabIndex = 1;
+            (li as HTMLElement).focus();
+            if (isParent) {
+                if (isExpanded) {
+                    setAttr(li, ariaExpanded, 'true');
+                } else {
+                    remAttr(li, ariaExpanded);
+                }
+            }
+        });
 
-    return ol ? [li, ol] : [li];
+        return ol ? [li, ol] : [li];
 
-    function calcLIClassName() {
-        const classList = [];
-        if (isParent) {
-            classList.push('parent');
+        function calcLIClassName() {
+            const classList = [];
+            if (isParent) {
+                classList.push('parent');
+            }
+            if (isExpanded) {
+                classList.push('expanded');
+            }
+            if (path === state.focusedNode) {
+                classList.push('selected');
+            }
+            return classList.join(' ');
         }
-        if (isExpanded) {
-            classList.push('expanded');
+
+        function calcOLClassName() {
+            return isExpanded ? 'expanded' : '';
         }
-        return classList.join(' ');
     }
 
-    function calcOLClassName() {
-        return isExpanded ? 'expanded' : '';
-    }
 }
 
 function keyValuePair(value: JsonValue, k?: string): HTMLElement[] {

@@ -27,7 +27,6 @@
     :host {
       --background-color: #242424;
       --color: rgba(255, 255, 255, 0.87);
-      --expand-bullet-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"><path d="M10.5 6.65 4.9 2.8v7.7" fill="black"/></svg>');
       --expand-bullet-color: white;
       --key-color: #7cacf8ff;
       --number-value-color: #9980ff;
@@ -37,7 +36,6 @@
       --focused-node-background: #3d3d3d;
       --hovered-node-background: #3d3d3d;
     }
-
 }
 
 .json-tree {
