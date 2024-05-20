@@ -34,11 +34,14 @@ export class JsonViewerWebComponent extends HTMLElement {
     }
 
     render() {
+        if (!this.valueProp) {
+            return;
+        }
         const { focusedNode } = this.jsonViewerState;
         try {
             this.jsonViewerState.value = JSON.parse(this.valueProp);
         } catch (e: any) {
-            return this.appRoot.innerText = e.messsage;
+            return this.appRoot.innerText = e;
         }
         const [jv, select] = jsonViewer(this.jsonViewerState, () => {
             this.emit('expandedChange', { expanded: this.jsonViewerState.expandedNodes });
