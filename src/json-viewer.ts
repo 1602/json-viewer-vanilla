@@ -28,6 +28,7 @@ type TreeNodeParams = {
     displayIndexOffset?: number,
 }
 
+const ARRAY_CHUNK_LIMIT = 100;
 const ariaSelected = 'aria-selected';
 const ariaExpanded = 'aria-expanded';
 
@@ -149,7 +150,6 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         function renderChildren() {
             let children: HTMLElement[] = [];
             if (isParent) {
-                const ARRAY_CHUNK_LIMIT = 5;
                 if (Array.isArray(value) && value.length > ARRAY_CHUNK_LIMIT) {
                     const a = [];
                     for (let i = 0; i < value.length; i += ARRAY_CHUNK_LIMIT) {
