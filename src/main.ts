@@ -43,6 +43,7 @@ if (app) {
   });
   app.appendChild(jv);
   app.appendChild(expandedNodes);
+  app.appendChild(ce('json-viewer'));
 
   let expand = true;
   const expandAllButton = ce('button');
@@ -71,4 +72,21 @@ if (app) {
   //     // data.demo.longArray.push(Math.floor(Math.random() * 10));
   //     jv.value = JSON.stringify(data);
   // }, 5000);
+  //
+  const urls = ['https://json-schema.org/draft/2020-12/schema', 'https://protocol.automationcloud.net/schema.json', 'https://microsoftedge.github.io/Demos/json-dummy-data/512KB-min.json', 'https://microsoftedge.github.io/Demos/json-dummy-data/5MB-min.json'];
+
+  (async () => {
+      for (let url of urls) {
+          await loadUrl(url);
+      }
+  })();
+
+  document.body.appendChild(jv);
+
+  async function loadUrl(url: string) {
+      const data = await (await fetch(url)).json();
+      const jv = document.createElement('json-viewer');
+      jv.setAttribute('value', JSON.stringify(data));
+      document.body.appendChild(jv);
+  }
 }
