@@ -12,7 +12,8 @@ export class JsonViewerWebComponent extends HTMLElement {
         this.jsonViewerState = {
             expandedNodes: {},
             focusedNode: null,
-            value: null
+            value: null,
+            selectedPath: '',
         };
         this.appRoot = document.createElement('div');
         this.shadowRoot!.appendChild(this.appRoot);

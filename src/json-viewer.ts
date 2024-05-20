@@ -14,6 +14,7 @@ import {
 export type ExternalState = {
     expandedNodes: {[key: string]: boolean}
     focusedNode: string|null
+    selectedPath: string
     value: JsonValue
 }
 
@@ -37,7 +38,6 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         ce('ol', {
            class: 'expanded',
            role: 'tree',
-           tabIndex: '0'
        }, treeNode({ value: state.value, path: '' }))
     ]);
 
@@ -112,7 +112,9 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         selectedNode.classList.add('selected');
         setAttr(selectedNode, 'tabindex', '1');
         setAttr(selectedNode, ariaSelected, 'true');
-        state.focusedNode = li.getAttribute('json-path');
+        const jp = li.getAttribute('json-path');
+        state.selectedPath = jp || '';
+        state.focusedNode = jp;
     }
 
     function treeNode({
@@ -125,11 +127,13 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         const isParent = typeof value === 'object' && value !== null && Object.keys(value).length > 0;
         let isExpanded = Boolean(state.expandedNodes[path]);
         let isRendered = isExpanded;
+        let isSelected = state.selectedPath === path || state.focusedNode === path;
 
         const li = ce('li', {
             role: 'treeitem',
             'json-path': path,
             class: calcLIClassName(),
+            tabindex: isSelected ? '1' : '',
             'aria-expanded': isParent && isExpanded ? 'true' : '',
         }, [
             ce('span', { class: 'key-value-pair' }, skipPreview && k ? [ctn(k)] : keyValuePair(value, k)),
@@ -215,7 +219,7 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
             if (isExpanded) {
                 classList.push('expanded');
             }
-            if (path === state.focusedNode) {
+            if (path === state.focusedNode || path === state.selectedPath) {
                 classList.push('selected');
             }
             return classList.join(' ');
