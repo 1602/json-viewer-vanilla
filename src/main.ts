@@ -38,7 +38,7 @@ const json = `
 if (app) {
   const jv = ce('json-viewer', { value: json, expanded: '{"": true, "/demo": true}' }) as JsonViewerWebComponent;
   const expandedNodes = ce('pre');
-  jv.addEventListener('json-viewer:expandedChange', ({ detail }: any) => {
+  jv.addEventListener('json-viewer:expanded-change', ({ detail }: any) => {
       expandedNodes.textContent = JSON.stringify(detail.expanded, null, '  ');
   });
   app.appendChild(jv);

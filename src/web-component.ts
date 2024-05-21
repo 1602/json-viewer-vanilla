@@ -44,7 +44,7 @@ export class JsonViewerWebComponent extends HTMLElement {
             return this.appRoot.innerText = e;
         }
         const [jv, select] = jsonViewer(this.jsonViewerState, () => {
-            this.emit('expandedChange', { expanded: this.jsonViewerState.expandedNodes });
+            this.emit('expanded-change', { expanded: this.jsonViewerState.expandedNodes });
         })
         this.shadowRoot!.replaceChild(jv, this.shadowRoot!.firstElementChild!);
         if (focusedNode) {
