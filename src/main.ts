@@ -36,57 +36,57 @@ const json = `
 `;
 
 if (app) {
-  const jv = ce('json-viewer', { value: json, expanded: '{"": true, "/demo": true}' }) as JsonViewerWebComponent;
-  const expandedNodes = ce('pre');
-  jv.addEventListener('json-viewer:expanded-change', ({ detail }: any) => {
-      expandedNodes.textContent = JSON.stringify(detail.expanded, null, '  ');
-  });
-  app.appendChild(jv);
-  app.appendChild(expandedNodes);
-  app.appendChild(ce('json-viewer'));
+    const jv = ce('json-viewer', { value: json, expanded: '{"": true, "/demo": true}' }) as JsonViewerWebComponent;
+    const expandedNodes = ce('pre');
+    jv.addEventListener('json-viewer:expanded-change', ({ detail }: any) => {
+        expandedNodes.textContent = JSON.stringify(detail.expanded, null, '  ');
+    });
+    app.appendChild(jv);
+    app.appendChild(expandedNodes);
+    app.appendChild(ce('json-viewer'));
 
-  let expand = true;
-  const expandAllButton = ce('button');
-  expandAllButton.addEventListener('click', () => {
-      const expanded: {[key: string]: boolean} = {};
-      walk(JSON.parse(json), '');
-      jv.expanded = expanded;
+    let expand = true;
+    const expandAllButton = ce('button');
+    expandAllButton.addEventListener('click', () => {
+        const expanded: {[key: string]: boolean} = {};
+        walk(JSON.parse(json), '');
+        jv.expanded = expanded;
 
-      expand = !expand;
-      expandAllButton.textContent = expand ? 'Expand all' : 'Collapse all';
+        expand = !expand;
+        expandAllButton.textContent = expand ? 'Expand all' : 'Collapse all';
 
-      function walk(node: any, path: string = '') {
-          if (typeof node === 'object' && node !== null) {
-              expanded[path] = expand;
-              Object.keys(node).forEach((key) => walk(node[key], path + '/' + key));
-          }
-      }
-  });
+        function walk(node: any, path: string = '') {
+            if (typeof node === 'object' && node !== null) {
+                expanded[path] = expand;
+                Object.keys(node).forEach((key) => walk(node[key], path + '/' + key));
+            }
+        }
+    });
 
-  expandAllButton.textContent = 'Expand all';
-  app.before(ce('div', {style: 'padding: 10px'}, [expandAllButton]), jv);
+    expandAllButton.textContent = 'Expand all';
+    app.before(ce('div', {style: 'padding: 10px'}, [expandAllButton]), jv);
 
-  // const data = JSON.parse(json);
-  // setInterval(() => {
-  //     data.demo.longArray[0] = Math.floor(Math.random() * 10);
-  //     // data.demo.longArray.push(Math.floor(Math.random() * 10));
-  //     jv.value = JSON.stringify(data);
-  // }, 5000);
-  //
-  const urls = ['https://json-schema.org/draft/2020-12/schema', 'https://protocol.automationcloud.net/schema.json', 'https://microsoftedge.github.io/Demos/json-dummy-data/512KB-min.json', 'https://microsoftedge.github.io/Demos/json-dummy-data/5MB-min.json'];
+    // const data = JSON.parse(json);
+    // setInterval(() => {
+    //     data.demo.longArray[0] = Math.floor(Math.random() * 10);
+    //     // data.demo.longArray.push(Math.floor(Math.random() * 10));
+    //     jv.value = JSON.stringify(data);
+    // }, 5000);
+    //
+    const urls = ['https://json-schema.org/draft/2020-12/schema', 'https://protocol.automationcloud.net/schema.json', 'https://microsoftedge.github.io/Demos/json-dummy-data/512KB-min.json', 'https://microsoftedge.github.io/Demos/json-dummy-data/5MB-min.json'];
 
-  (async () => {
-      for (let url of urls) {
-          await loadUrl(url);
-      }
-  })();
+    (async () => {
+        for (let url of urls) {
+            await loadUrl(url);
+        }
+    })();
 
-  document.body.appendChild(jv);
+    document.body.appendChild(jv);
 
-  async function loadUrl(url: string) {
-      const data = await (await fetch(url)).json();
-      const jv = document.createElement('json-viewer');
-      jv.setAttribute('value', JSON.stringify(data));
-      document.body.appendChild(jv);
-  }
+    async function loadUrl(url: string) {
+        const data = await (await fetch(url)).json();
+        const jv = document.createElement('json-viewer');
+        jv.setAttribute('value', JSON.stringify(data));
+        document.body.appendChild(jv);
+    }
 }
