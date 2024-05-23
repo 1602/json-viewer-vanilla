@@ -146,6 +146,13 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
                 state.focusedNode = null;
             }
         });
+        li.addEventListener('copy', (event: ClipboardEvent) => {
+            if (event.clipboardData) {
+                event.clipboardData.setData("text/plain", JSON.stringify(value, null, 2));
+            }
+            event.preventDefault();
+        });
+
 
         function renderChildren() {
             let children: HTMLElement[] = [];
