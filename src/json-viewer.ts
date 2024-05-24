@@ -141,6 +141,10 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
             ce('div', { class: 'fill' }),
         ]) as HTMLLIElement;
 
+        if (isSelected) {
+            selectedNode = li;
+        }
+
         li.addEventListener('blur', () => {
             if (state.focusedNode === path) {
                 state.focusedNode = null;
