@@ -3,7 +3,9 @@ export function ce(tagName: string, attributes?: {[key: string]: string}, childr
     const el = document.createElement(tagName);
     if (attributes) {
         Object.entries(attributes).forEach(([key, value]) => {
-            setAttr(el, key, value);
+            if (value !== '') {
+                setAttr(el, key, value);
+            }
         });
     }
     if (children) {
