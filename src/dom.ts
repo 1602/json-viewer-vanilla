@@ -1,5 +1,8 @@
-
-export function ce(tagName: string, attributes?: {[key: string]: string}, children?: (Node|null)[]): HTMLElement {
+export function ce(
+    tagName: string,
+    attributes?: { [key: string]: string },
+    children?: (Node | null)[]
+): HTMLElement {
     const el = document.createElement(tagName);
     if (attributes) {
         Object.entries(attributes).forEach(([key, value]) => {
@@ -9,7 +12,7 @@ export function ce(tagName: string, attributes?: {[key: string]: string}, childr
         });
     }
     if (children) {
-        children.forEach(c => {
+        children.forEach((c) => {
             if (c) {
                 el.appendChild(c);
             }
@@ -24,11 +27,29 @@ export function ctn(t: string): Text {
 
 export function clickOn(el: Element) {
     const theEvent = document.createEvent('MouseEvent');
-    theEvent.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+    theEvent.initMouseEvent(
+        'click',
+        true,
+        true,
+        window,
+        0,
+        0,
+        0,
+        0,
+        0,
+        false,
+        false,
+        false,
+        false,
+        0,
+        null
+    );
     el.dispatchEvent(theEvent);
 }
 
-export function findNextVisibleListItem(el: Element|null): HTMLLIElement|null {
+export function findNextVisibleListItem(
+    el: Element | null
+): HTMLLIElement | null {
     if (!el) {
         return null;
     }
@@ -44,7 +65,7 @@ export function findNextVisibleListItem(el: Element|null): HTMLLIElement|null {
     }
 
     if (nes.tagName === 'OL') {
-        const fec = nes.firstElementChild;;
+        const fec = nes.firstElementChild;
         if (fec?.tagName === 'LI' && fec.checkVisibility()) {
             return fec as HTMLLIElement;
         }
@@ -55,7 +76,9 @@ export function findNextVisibleListItem(el: Element|null): HTMLLIElement|null {
     return null;
 }
 
-export function findPrevVisibleListItem(el: Element|null): HTMLLIElement|null {
+export function findPrevVisibleListItem(
+    el: Element | null
+): HTMLLIElement | null {
     if (!el) {
         return null;
     }
@@ -101,35 +124,34 @@ export function isInViewport(element: HTMLElement) {
         return true;
     }
 
-    const result = (
+    const result =
         rect.top >= 0 &&
         rect.left >= 0 &&
-        rect.bottom <= scrollableParent.clientHeight
-    );
+        rect.bottom <= scrollableParent.clientHeight;
 
     return result;
 }
 
 const isScrollable = (node: Element) => {
     if (!(node instanceof HTMLElement || node instanceof SVGElement)) {
-        return false
+        return false;
     }
-    const style = getComputedStyle(node)
+    const style = getComputedStyle(node);
     return ['overflow', 'overflow-x', 'overflow-y'].some((propertyName) => {
-        const value = style.getPropertyValue(propertyName)
-        return value === 'auto' || value === 'scroll'
-    })
-}
+        const value = style.getPropertyValue(propertyName);
+        return value === 'auto' || value === 'scroll';
+    });
+};
 
 function getScrollParent(node: Element): Element {
-    let currentParent = node.parentElement
+    let currentParent = node.parentElement;
     while (currentParent) {
         if (isScrollable(currentParent)) {
-            return currentParent
+            return currentParent;
         }
-        currentParent = currentParent.parentElement
+        currentParent = currentParent.parentElement;
     }
-    return document.scrollingElement || document.documentElement
+    return document.scrollingElement || document.documentElement;
 }
 
 export function remAttr(el: HTMLElement, attr: string) {

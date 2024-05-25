@@ -1,4 +1,4 @@
-import './style.css'
+import './style.css';
 // import { jsonViewer } from './json-viewer.ts'
 import './index.js';
 import { JsonViewerWebComponent } from './web-component.js';
@@ -36,7 +36,10 @@ const json = `
 `;
 
 if (app) {
-    const jv = ce('json-viewer', { value: json, expanded: '{"": true, "/demo": true}' }) as JsonViewerWebComponent;
+    const jv = ce('json-viewer', {
+        value: json,
+        expanded: '{"": true, "/demo": true}',
+    }) as JsonViewerWebComponent;
     const expandedNodes = ce('pre');
     jv.addEventListener('json-viewer:expanded-change', ({ detail }: any) => {
         expandedNodes.textContent = JSON.stringify(detail.expanded, null, '  ');
@@ -48,7 +51,7 @@ if (app) {
     let expand = true;
     const expandAllButton = ce('button');
     expandAllButton.addEventListener('click', () => {
-        const expanded: {[key: string]: boolean} = {};
+        const expanded: { [key: string]: boolean } = {};
         walk(JSON.parse(json), '');
         jv.expanded = expanded;
 
@@ -58,13 +61,15 @@ if (app) {
         function walk(node: any, path: string = '') {
             if (typeof node === 'object' && node !== null) {
                 expanded[path] = expand;
-                Object.keys(node).forEach((key) => walk(node[key], path + '/' + key));
+                Object.keys(node).forEach((key) =>
+                    walk(node[key], path + '/' + key)
+                );
             }
         }
     });
 
     expandAllButton.textContent = 'Expand all';
-    app.before(ce('div', {style: 'padding: 10px'}, [expandAllButton]), jv);
+    app.before(ce('div', { style: 'padding: 10px' }, [expandAllButton]), jv);
 
     // const data = JSON.parse(json);
     // setInterval(() => {
@@ -73,7 +78,12 @@ if (app) {
     //     jv.value = JSON.stringify(data);
     // }, 5000);
     //
-    const urls = ['https://json-schema.org/draft/2020-12/schema', 'https://protocol.automationcloud.net/schema.json', 'https://microsoftedge.github.io/Demos/json-dummy-data/512KB-min.json', 'https://microsoftedge.github.io/Demos/json-dummy-data/5MB-min.json'];
+    const urls = [
+        'https://json-schema.org/draft/2020-12/schema',
+        'https://protocol.automationcloud.net/schema.json',
+        'https://microsoftedge.github.io/Demos/json-dummy-data/512KB-min.json',
+        'https://microsoftedge.github.io/Demos/json-dummy-data/5MB-min.json',
+    ];
 
     (async () => {
         for (let url of urls) {

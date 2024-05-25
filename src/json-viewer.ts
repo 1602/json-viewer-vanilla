@@ -12,34 +12,41 @@ import {
 } from './dom.js';
 
 export type ExternalState = {
-    expandedNodes: {[key: string]: boolean}
-    focusedNode: string|null
-    selectedPath: string
-    value: JsonValue
-}
+    expandedNodes: { [key: string]: boolean };
+    focusedNode: string | null;
+    selectedPath: string;
+    value: JsonValue;
+};
 
-export type JsonValue = object|Array<JsonValue>|string|number|null;
+export type JsonValue = object | Array<JsonValue> | string | number | null;
 
 type TreeNodeParams = {
-    value: JsonValue,
-    path: string,
-    k?: string,
-    skipPreview?: boolean,
-    displayIndexOffset?: number,
-}
+    value: JsonValue;
+    path: string;
+    k?: string;
+    skipPreview?: boolean;
+    displayIndexOffset?: number;
+};
 
 const ARRAY_CHUNK_LIMIT = 100;
 const ariaSelected = 'aria-selected';
 const ariaExpanded = 'aria-expanded';
 
-export function jsonViewer(state: ExternalState, onExpandedChange: () => void): [HTMLElement, (el: HTMLLIElement|null) => void] {
-    let selectedNode: HTMLLIElement|null = null;
+export function jsonViewer(
+    state: ExternalState,
+    onExpandedChange: () => void
+): [HTMLElement, (el: HTMLLIElement | null) => void] {
+    let selectedNode: HTMLLIElement | null = null;
     const jv = ce('div', { class: 'json-tree' }, [
         ce('style', {}, [ctn(styles)]),
-        ce('ol', {
-           class: 'expanded',
-           role: 'tree',
-       }, treeNode({ value: state.value, path: '' }))
+        ce(
+            'ol',
+            {
+                class: 'expanded',
+                role: 'tree',
+            },
+            treeNode({ value: state.value, path: '' })
+        ),
     ]);
 
     jv.addEventListener('keydown', onKeyDownHandler);
@@ -63,30 +70,34 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
                 if (isExpanded) {
                     return clickOn(selectedElement);
                 }
-                select(selectedElement.parentElement?.previousElementSibling as HTMLLIElement);
-            break;
+                if (selectedElement.parentElement) {
+                    select(
+                        selectedElement.parentElement
+                            .previousElementSibling as HTMLLIElement
+                    );
+                }
+                break;
             case 'ArrowRight':
                 e.preventDefault();
                 if (isExpanded) {
                     return select(findNextVisibleListItem(selectedElement));
                 }
                 clickOn(selectedElement);
-            break;
+                break;
             case 'ArrowDown':
             case 'KeyJ':
                 e.preventDefault();
                 select(findNextVisibleListItem(selectedElement));
-            break;
+                break;
             case 'ArrowUp':
-            case 'KeyK': {
+            case 'KeyK':
                 e.preventDefault();
                 select(findPrevVisibleListItem(selectedElement));
-            }
-            break;
+                break;
         }
     }
 
-    function select(el: HTMLLIElement|null) {
+    function select(el: HTMLLIElement | null) {
         if (el) {
             const path = el.getAttribute('json-path');
             if (path !== null) {
@@ -114,7 +125,7 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         setAttr(selectedNode, 'tabindex', '0');
         setAttr(selectedNode, ariaSelected, 'true');
         const jp = li.getAttribute('json-path');
-        state.selectedPath = jp || '';
+        state.selectedPath = jp || '/';
         state.focusedNode = jp;
     }
 
@@ -125,8 +136,11 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         skipPreview,
         displayIndexOffset = 0,
     }: TreeNodeParams): HTMLElement[] {
-        const isParent = typeof value === 'object' && value !== null && Object.keys(value).length > 0;
-        let isExpanded = Boolean(state.expandedNodes[path]);
+        const isParent =
+            typeof value === 'object' &&
+            value !== null &&
+            Object.keys(value).length > 0;
+        let isExpanded = Boolean(state.expandedNodes[path || '/']);
         let isRendered = isExpanded;
         let isSelected =
             state.selectedPath === path || state.focusedNode === path;
@@ -161,11 +175,13 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         });
         li.addEventListener('copy', (event: ClipboardEvent) => {
             if (event.clipboardData) {
-                event.clipboardData.setData("text/plain", JSON.stringify(value, null, 2));
+                event.clipboardData.setData(
+                    'text/plain',
+                    JSON.stringify(value, null, 2)
+                );
             }
             event.preventDefault();
         });
-
 
         function renderChildren() {
             let children: HTMLElement[] = [];
@@ -266,32 +282,46 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
             return isExpanded ? 'expanded' : '';
         }
     }
-
 }
 
 function keyValuePair(value: JsonValue, k?: string): HTMLElement[] {
-    const valueElement = (() => {switch (typeof value) {
-        case 'string':
-            return ce('span', { class: 'string-value'}, [ctn(`"${value}"`)]);
-        case 'number':
-            return ce('span', { class: 'num-value' }, [ctn(value.toString())]);
-        case 'boolean':
-            return ce('span', { class: 'bool-value' }, [ctn(value ? 'true' : 'false')]);
-        case 'object':
-            if (value === null) {
-                return ce('span', { class: 'null-value' }, [ ctn('null') ]);
-            }
-            if (Array.isArray(value)) {
-                return ce('span', {}, [ ctn(previewValue(value)) ]);
-            }
-            return ce('span', {}, [ ctn(previewValue(value)) ]);
-        default:
-            return ce('span', {}, [ ctn('invalid json value') ]);
-    }})();
+    const valueElement = (() => {
+        switch (typeof value) {
+            case 'string':
+                return ce('span', { class: 'string-value' }, [
+                    ctn(`"${value}"`),
+                ]);
+            case 'number':
+                return ce('span', { class: 'num-value' }, [
+                    ctn(value.toString()),
+                ]);
+            case 'boolean':
+                return ce('span', { class: 'bool-value' }, [
+                    ctn(value ? 'true' : 'false'),
+                ]);
+            case 'object':
+                if (value === null) {
+                    return ce('span', { class: 'null-value' }, [ctn('null')]);
+                }
+                if (Array.isArray(value)) {
+                    return ce('span', {}, [ctn(previewValue(value))]);
+                }
+                return ce('span', {}, [ctn(previewValue(value))]);
+            default:
+                return ce('span', {}, [ctn('invalid json value')]);
+        }
+    })();
+
+    k = k === '' ? '""' : k;
 
     return [
-        k ? [ce('span', { class: 'key-name' }, [ ctn(k) ]), ce('span', { class: 'delim' }, [ ctn(': ') ]) ] : [],
-        [ valueElement]
+        k
+            ? [
+                  ce('span', { class: 'key-name' }, [ctn(k)]),
+                  ce('span', { class: 'delim' }, [ctn(': ')]),
+              ]
+            : [],
+        [valueElement],
     ].flat();
 }
 
@@ -318,7 +348,10 @@ function previewValue(value: JsonValue, depth = 2): string {
                         return `[…]`;
                     }
                     const len = value.length;
-                    return `[${ value.slice(0, 2).map((v) => previewValue(v, depth - 1)).join(', ') }${ len > 2 ? ',…' : ''}]`;
+                    return `[${value
+                        .slice(0, 2)
+                        .map((v) => previewValue(v, depth - 1))
+                        .join(', ')}${len > 2 ? ',…' : ''}]`;
                 }
 
                 if (value === null) {
@@ -349,4 +382,3 @@ function previewValue(value: JsonValue, depth = 2): string {
         return typeof value;
     }
 }
-
