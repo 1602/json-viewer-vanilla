@@ -111,7 +111,7 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         }
         selectedNode = li;
         selectedNode.classList.add('selected');
-        setAttr(selectedNode, 'tabindex', '1');
+        setAttr(selectedNode, 'tabindex', '0');
         setAttr(selectedNode, ariaSelected, 'true');
         const jp = li.getAttribute('json-path');
         state.selectedPath = jp || '';
@@ -128,18 +128,27 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
         const isParent = typeof value === 'object' && value !== null && Object.keys(value).length > 0;
         let isExpanded = Boolean(state.expandedNodes[path]);
         let isRendered = isExpanded;
-        let isSelected = state.selectedPath === path || state.focusedNode === path;
+        let isSelected =
+            state.selectedPath === path || state.focusedNode === path;
 
-        const li = ce('li', {
-            role: 'treeitem',
-            'json-path': path,
-            class: calcLIClassName(),
-            tabindex: isSelected ? '1' : '',
-            'aria-expanded': isParent && isExpanded ? 'true' : '',
-        }, [
-            ce('span', { class: 'key-value-pair' }, skipPreview && k ? [ctn(k)] : keyValuePair(value, k)),
-            ce('div', { class: 'fill' }),
-        ]) as HTMLLIElement;
+        const li = ce(
+            'li',
+            {
+                role: 'treeitem',
+                'json-path': path || '/',
+                class: calcLIClassName(),
+                tabindex: isSelected ? '0' : '',
+                'aria-expanded': isParent && isExpanded ? 'true' : '',
+            },
+            [
+                ce(
+                    'span',
+                    { class: 'key-value-pair' },
+                    skipPreview && k ? [ctn(k)] : keyValuePair(value, k)
+                ),
+                ce('div', { class: 'fill' }),
+            ]
+        ) as HTMLLIElement;
 
         if (isSelected) {
             selectedNode = li;
@@ -165,43 +174,60 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
                     const a = [];
                     for (let i = 0; i < value.length; i += ARRAY_CHUNK_LIMIT) {
                         const arrayChunkLabel = `[${i} … ${Math.min(value.length - 1, i + ARRAY_CHUNK_LIMIT - 1)}]`;
-                        a.push(treeNode({
-                            k: arrayChunkLabel,
-                            displayIndexOffset: i,
-                            skipPreview: true,
-                            value: value.slice(i, i + ARRAY_CHUNK_LIMIT),
-                            path: path + '/' + i,
-                        }));
+                        a.push(
+                            treeNode({
+                                k: arrayChunkLabel,
+                                displayIndexOffset: i,
+                                skipPreview: true,
+                                value: value.slice(i, i + ARRAY_CHUNK_LIMIT),
+                                path: path + '/' + i,
+                            })
+                        );
                     }
                     children = a.flat();
                 } else {
-                    children = Object.entries(value).map(([k, v]) => {
-                        if (Array.isArray(value)) {
-                            k = (parseInt(k, 10) + displayIndexOffset).toString();
-                        }
-                        return treeNode({
-                            k,
-                            value: v,
-                            path: path + '/' + k,
-                        });
-                    }).flat();
+                    children = Object.entries(value)
+                        .map(([k, v]) => {
+                            if (Array.isArray(value)) {
+                                k = (
+                                    parseInt(k, 10) + displayIndexOffset
+                                ).toString();
+                            }
+                            return treeNode({
+                                k,
+                                value: v,
+                                path: path + '/' + k,
+                            });
+                        })
+                        .flat();
                 }
             }
-            return children.length ? ce('ol', { role: 'group', class: calcOLClassName() }, children) : null;
+            return children.length
+                ? ce(
+                      'ol',
+                      { role: 'group', class: calcOLClassName() },
+                      children
+                  )
+                : null;
         }
 
-        let ol: HTMLElement|null = null;
+        let ol: HTMLElement | null = null;
         if (isParent && isExpanded && isRendered) {
             ol = renderChildren();
         }
 
         li.addEventListener('click', () => {
-            isExpanded = !isExpanded;
-            state.expandedNodes[path] = isExpanded;
-            onExpandedChange();
+            if (isParent) {
+                isExpanded = !isExpanded;
+                state.expandedNodes[path || '/'] = isExpanded;
+                onExpandedChange();
+            }
             if (isParent && isExpanded && !isRendered) {
                 ol = renderChildren();
-                li.parentNode!.insertBefore(ol as HTMLElement, li.nextElementSibling);
+                li.parentNode!.insertBefore(
+                    ol as HTMLElement,
+                    li.nextElementSibling
+                );
                 isRendered = true;
             }
             if (ol) {
@@ -209,7 +235,7 @@ export function jsonViewer(state: ExternalState, onExpandedChange: () => void): 
             }
             li.className = calcLIClassName();
             onSelectedNode(li);
-            (li as HTMLElement).tabIndex = 1;
+            (li as HTMLElement).tabIndex = 0;
             (li as HTMLElement).focus();
             if (isParent) {
                 if (isExpanded) {
@@ -305,7 +331,13 @@ function previewValue(value: JsonValue, depth = 2): string {
 
                 const entries = Object.entries(value as object);
                 const len = entries.length;
-                return `{${ entries.slice(0, 2).map(([k, v]) => `${k}: ${previewValue(v as JsonValue, depth - 1)}`).join(', ')}${len > 2 ? ',…' : ''}}`;
+                return `{${entries
+                    .slice(0, 2)
+                    .map(
+                        ([k, v]) =>
+                            `${k || '""'}: ${previewValue(v as JsonValue, depth - 1)}`
+                    )
+                    .join(', ')}${len > 2 ? ',…' : ''}}`;
             }
             case 'string': {
                 return `"${value.substring(0, 100)}"`;
