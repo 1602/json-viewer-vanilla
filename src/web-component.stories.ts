@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/web-components';
 import { userEvent, expect } from '@storybook/test';
+import { action } from '@storybook/addon-actions';
 
 import './index.ts';
 import { ce } from './dom.ts';
@@ -46,16 +47,15 @@ export const ExpandedChangeEvent: Story = {
         }),
     },
     render: ({ value }) => {
+        const act = action('json-viewer:expanded-change');
         const pre = new JsonViewerWebComponent();
         pre.expanded = { '/': true };
         const jv = new JsonViewerWebComponent();
         jv.value = value;
-        jv.addEventListener(
-            'json-viewer:expanded-change',
-            ({ detail }: any) => {
-                pre.value = JSON.stringify(detail.expanded, null, 2);
-            }
-        );
+        jv.addEventListener('json-viewer:expanded-change', (e: any) => {
+            pre.value = JSON.stringify(e.detail.expanded, null, 2);
+            act(e);
+        });
         return ce('div', {}, [jv, pre]);
     },
 };
