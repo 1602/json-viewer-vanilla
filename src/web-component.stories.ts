@@ -20,7 +20,7 @@ type Story = StoryObj;
 export const WithValueProp: Story = {
     argTypes: { value: { control: 'object' } },
     args: {
-        value: { foo: 'bar' },
+        value: { json: 'viewer' },
     },
     render: ({ value }) => {
         const jv = new JsonViewerWebComponent();
