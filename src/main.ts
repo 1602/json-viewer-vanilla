@@ -51,21 +51,13 @@ if (app) {
     let expand = true;
     const expandAllButton = ce('button');
     expandAllButton.addEventListener('click', () => {
-        const expanded: { [key: string]: boolean } = {};
-        walk(JSON.parse(json), '');
-        jv.expanded = expanded;
-
+        if (expand) {
+            jv.expandAll();
+        } else {
+            jv.collapseAll();
+        }
         expand = !expand;
         expandAllButton.textContent = expand ? 'Expand all' : 'Collapse all';
-
-        function walk(node: any, path: string = '') {
-            if (typeof node === 'object' && node !== null) {
-                expanded[path] = expand;
-                Object.keys(node).forEach((key) =>
-                    walk(node[key], path + '/' + key)
-                );
-            }
-        }
     });
 
     expandAllButton.textContent = 'Expand all';
