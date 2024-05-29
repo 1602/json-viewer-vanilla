@@ -60,6 +60,37 @@ export const ExpandedChangeEvent: Story = {
     },
 };
 
+export const ExpandAll: Story = {
+    render: () => {
+        const jv = ce('json-viewer', {
+            value: JSON.stringify({
+                foo: {
+                    bar: {
+                        baz: [{ fizz: 'buzz' }],
+                    },
+                },
+            }),
+        }) as JsonViewerWebComponent;
+        let expanded = false;
+        const button = ce('button');
+        button.onclick = () => {
+            if (expanded) {
+                jv.collapseAll();
+            } else {
+                jv.expandAll();
+            }
+            expanded = !expanded;
+            updateButton();
+        };
+        updateButton();
+        return ce('div', {}, [button, jv]);
+
+        function updateButton() {
+            button.textContent = expanded ? 'Collapse all' : 'Expand all';
+        }
+    },
+};
+
 export const KeyboardNavigation: Story = {
     args: {
         value: JSON.stringify({
