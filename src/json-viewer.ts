@@ -126,7 +126,7 @@ export function jsonViewer(
         setAttr(selectedNode, ariaSelected, 'true');
         const jp = li.getAttribute('json-path');
         state.selectedPath = jp || '/';
-        state.focusedNode = jp;
+        state.focusedNode = jp || '/';
     }
 
     function treeNode({
@@ -143,7 +143,8 @@ export function jsonViewer(
         let isExpanded = Boolean(state.expandedNodes[path || '/']);
         let isRendered = isExpanded;
         let isSelected =
-            state.selectedPath === path || state.focusedNode === path;
+            state.selectedPath === (path || '/') ||
+            state.focusedNode === (path || '/');
 
         const li = ce(
             'li',
@@ -169,7 +170,7 @@ export function jsonViewer(
         }
 
         li.addEventListener('blur', () => {
-            if (state.focusedNode === path) {
+            if (state.focusedNode === (path || '/')) {
                 state.focusedNode = null;
             }
         });

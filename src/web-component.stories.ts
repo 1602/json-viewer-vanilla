@@ -201,3 +201,68 @@ export const VariousJsonExamples: Story = {
     },
 };
 */
+
+export const FocusHandling: Story = {
+    argTypes: { value: { control: 'object' } },
+    args: {
+        value: { json: 'viewer' },
+    },
+    render: ({ value }) => {
+        const jv = new JsonViewerWebComponent();
+        jv.value = JSON.stringify(value);
+        const ta = document.createElement('textarea');
+        ta.value = jv.value;
+        const div = document.createElement('div');
+        div.appendChild(ta);
+        div.appendChild(jv);
+
+        ta.addEventListener('input', () => {
+            console.log('dadsa', ta.value);
+            jv.value = ta.value;
+        });
+
+        // const jv2 = new JsonViewerWebComponent();
+        // jv2.value = JSON.stringify(value);
+        // const ta2 = document.createElement('textarea');
+        // ta2.value = jv.value;
+        // div.appendChild(ta2);
+        // div.appendChild(jv2);
+
+        // ta2.addEventListener('input', () => {
+        //     jv2.value = ta2.value;
+        // });
+        return div;
+    },
+    play: async ({ canvasElement, step }) => {
+        const root = canvasElement
+            .querySelector('json-viewer')!
+            .shadowRoot!.querySelector('.json-tree');
+        if (!root) {
+            return;
+        }
+        const el = root.querySelector('li');
+        if (!el) {
+            return;
+        }
+        await step('Focus on json-viewer element', async () => {
+            await userEvent.click(el);
+            await expect(el).toHaveAttribute('aria-expanded');
+        });
+        await pause(500);
+        await step('Focus on textarea element', async () => {
+            const ta = canvasElement.querySelector('textarea')!;
+            await userEvent.click(ta);
+        });
+        await pause(500);
+        await step('Type two characters', async () => {
+            const ta = canvasElement.querySelector('textarea')!;
+            // ta.setSelectionRange(10, 11);
+            await pause(100);
+            userEvent.type(ta, 'hat', {
+                delay: 100,
+                initialSelectionStart: 10,
+                initialSelectionEnd: 11,
+            });
+        });
+    },
+};
