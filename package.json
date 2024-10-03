@@ -19,18 +19,18 @@
     "chromatic": "npx chromatic --project-token=chpt_d3dae0ad12f1428"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^1.4.0",
-    "@storybook/addon-a11y": "^8.1.3",
-    "@storybook/addon-essentials": "^8.1.3",
-    "@storybook/addon-interactions": "^8.1.3",
-    "@storybook/addon-links": "^8.1.3",
-    "@storybook/blocks": "^8.1.3",
-    "@storybook/test": "^8.1.3",
-    "@storybook/web-components": "^8.1.3",
-    "@storybook/web-components-vite": "^8.1.3",
+    "@chromatic-com/storybook": "^2.0.2",
+    "@storybook/addon-a11y": "^8.3.4",
+    "@storybook/addon-essentials": "^8.3.4",
+    "@storybook/addon-interactions": "^8.3.4",
+    "@storybook/addon-links": "^8.3.4",
+    "@storybook/blocks": "^8.3.4",
+    "@storybook/test": "^8.3.4",
+    "@storybook/web-components": "^8.3.4",
+    "@storybook/web-components-vite": "^8.3.4",
     "chromatic": "^11.4.1",
     "lit": "^3.1.3",
-    "storybook": "^8.1.3",
+    "storybook": "^8.3.4",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
   }
